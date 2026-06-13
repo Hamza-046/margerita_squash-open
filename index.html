@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Margerita Open — LGGCC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2ECE0;
+  --ink: #16140F;
+  --court: #2D5A3F;
+  --cooler: #3D6E8E;
+  --furnace: #C44A2D;
+  --brass: #A8854A;
+  --paper: #FAF6EC;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 24px 20px 80px; }
+
+header.masthead {
+  border-bottom: 3px double var(--ink);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+.eyebrow {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.25em;
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+h1.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: clamp(40px, 9vw, 76px);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  margin: 4px 0 8px;
+}
+h1.title em { font-style: italic; font-weight: 400; }
+.subline {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.subline .dot { width: 4px; height: 4px; background: var(--ink); border-radius: 50%; display: inline-block; }
+
+nav.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.tab {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.5;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.tab.active { opacity: 1; border-bottom-color: var(--ink); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.field { margin-bottom: 14px; }
+label {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+input[type=text], input[type=tel], input[type=number] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+}
+input:focus { outline: 2px solid var(--furnace); outline-offset: -2px; }
+
+button.btn {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 13px;
+  padding: 12px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  cursor: pointer;
+}
+button.btn:hover { background: var(--furnace); }
+button.btn.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+button.btn.secondary:hover { background: var(--ink); color: var(--paper); }
+button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  gap: 12px;
+}
+.player-name { font-weight: 600; }
+.player-phone { font-size: 13px; opacity: 0.6; }
+.player-group {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.courts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+@media (max-width: 640px) { .courts { grid-template-columns: 1fr; } }
+.court {
+  border: 1.5px solid var(--ink);
+  padding: 16px;
+  background: var(--paper);
+}
+.court.cooler { border-top: 6px solid var(--cooler); }
+.court.furnace { border-top: 6px solid var(--furnace); }
+.court-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.court-tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  opacity: 0.6;
+}
+
+.match {
+  border: 1px solid var(--ink);
+  padding: 14px;
+  background: var(--paper);
+  margin-bottom: 10px;
+}
+.match.completed { opacity: 0.55; }
+.match-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.court-pill { padding: 2px 8px; border: 1px solid currentColor; }
+.court-pill.cooler { color: var(--cooler); }
+.court-pill.furnace { color: var(--furnace); }
+.match-players { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 15px; flex-wrap: wrap; }
+.vs { font-family: 'Fraunces', serif; font-style: italic; opacity: 0.5; }
+.match-score { font-family: 'Oswald', sans-serif; font-size: 14px; margin-top: 6px; opacity: 0.7; letter-spacing: 0.05em; }
+.match-winner { color: var(--court); font-weight: 700; margin-top: 6px; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th {
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 10px 8px;
+  border-bottom: 2px solid var(--ink);
+}
+td { padding: 10px 8px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+td.num { font-family: 'Oswald', sans-serif; font-variant-numeric: tabular-nums; }
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+.games-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin: 4px 0; }
+.games-grid input { padding: 10px; text-align: center; }
+.games-grid .dash { text-align: center; opacity: 0.4; font-family: 'Fraunces', serif; }
+.disclaimer {
+  font-style: italic;
+  font-size: 13px;
+  padding: 12px;
+  background: var(--bg);
+  border-left: 3px solid var(--furnace);
+  margin: 16px 0;
+  line-height: 1.45;
+}
+
+.final-card {
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 24px;
+  margin-top: 16px;
+  text-align: center;
+}
+.final-card .label {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  font-size: 11px;
+  color: var(--brass);
+}
+.final-card .matchup {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 28px;
+  margin: 10px 0;
+}
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  font-style: italic;
+  opacity: 0.6;
+  border: 1px dashed var(--ink);
+}
+
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 28px;
+  margin: 28px 0 12px;
+  letter-spacing: -0.01em;
+}
+.section-title:first-child { margin-top: 0; }
+.section-title .count { font-family: 'Oswald', sans-serif; font-size: 16px; opacity: 0.5; font-weight: 400; }
+
+.notice {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.notice strong { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; display: block; margin-bottom: 4px; }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.match-actions { margin-top: 10px; display: flex; gap: 8px; }
+.match-actions button { font-size: 11px; padding: 6px 12px; }
+
+footer.foot {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0,0,0,0.2);
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.group-list { list-style: none; margin-top: 12px; }
+.group-list li { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.08); font-weight: 500; }
+.group-list li:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Lahore Garrison Golf &amp; Country Club presents</div>
+    <h1 class="title">Margerita <em>Open</em></h1>
+    <div class="subline">
+      <span>Inaugural Edition</span>
+      <span class="dot"></span>
+      <span>14 June 2026</span>
+      <span class="dot"></span>
+      <span>1700 to 1900</span>
+      <span class="dot"></span>
+      <span>Best of 3 to 11</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="register">Register</button>
+    <button class="tab" data-tab="draw">Draw</button>
+    <button class="tab" data-tab="matches">Matches</button>
+    <button class="tab" data-tab="standings">Standings</button>
+    <button class="tab" data-tab="rankings">Rankings</button>
+  </nav>
+
+  <section class="panel active" id="register">
+    <div class="notice">
+      <strong>How this works</strong>
+      Sign up with name and contact. Once everyone is in, hit <em>Draw groups</em>. Two random groups, round robin within each, group winners meet in the final. The ranking ladder builds from here.
+    </div>
+    <form id="regForm">
+      <div class="field">
+        <label>Player name</label>
+        <input type="text" id="pname" required maxlength="40" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Contact number</label>
+        <input type="tel" id="pphone" required maxlength="20" autocomplete="off">
+      </div>
+      <button type="submit" class="btn">Add player</button>
+    </form>
+    <h2 class="section-title">Registered <span class="count" id="playerCount">(0)</span></h2>
+    <div id="playerList"></div>
+  </section>
+
+  <section class="panel" id="draw">
+    <div id="drawContent"></div>
+  </section>
+
+  <section class="panel" id="matches">
+    <div id="matchesContent"></div>
+  </section>
+
+  <section class="panel" id="standings">
+    <div id="standingsContent"></div>
+  </section>
+
+  <section class="panel" id="rankings">
+    <div class="notice">
+      <strong>Margerita Series rankings</strong>
+      Everyone starts at 1000. Beat a higher-ranked player, gain more. Lose to a lower-ranked one, drop more. The ladder grows with every tournament.
+    </div>
+    <div id="rankingsContent"></div>
+  </section>
+
+  <footer class="foot">May the better racquet prevail</footer>
+</div>
+
+<div class="modal-backdrop" id="scoreModal">
+  <div class="modal">
+    <h3>Submit result</h3>
+    <div id="modalMatchInfo" style="margin-bottom: 14px; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; opacity: 0.7;"></div>
+    <div id="gamesInputs"></div>
+    <div class="field" style="margin-top: 12px;">
+      <label>Referee name</label>
+      <input type="text" id="refName" maxlength="40" autocomplete="off">
+    </div>
+    <div class="disclaimer">
+      By submitting, the referee solemnly swears upon the squash gods to call lines honestly, ignore all bribes (biryani, chai, or otherwise), and remain impervious to the puppy-eyes of cousins, doubles partners, and in-laws. False scoring is punishable by a lifetime sentence in The Furnace.
+    </div>
+    <div class="actions">
+      <button class="btn" id="submitScore">Submit</button>
+      <button class="btn secondary" id="cancelScore">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBCKeRql2RBsz1W0qo4qu2nB9FNyP-OMJ4",
+  authDomain: "margerita-squash-lcc.firebaseapp.com",
+  databaseURL: "https://margerita-squash-lcc-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "margerita-squash-lcc",
+  storageBucket: "margerita-squash-lcc.firebasestorage.app",
+  messagingSenderId: "468659410492",
+  appId: "1:468659410492:web:2f0ba93087b732b833d539",
+  measurementId: "G-K9DL4ZFHRQ"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const stateRef = ref(db, 'tournament');
+
+let state = {
+  players: [],
+  locked: false,
+  groups: { A: [], B: [] },
+  matches: [],
+  rankings: {}
+};
+let activeMatchId = null;
+let suppressNextSnapshot = false;
+
+function loadState() {
+  onValue(stateRef, (snapshot) => {
+    if (suppressNextSnapshot) { suppressNextSnapshot = false; return; }
+    const val = snapshot.val();
+    if (val) {
+      state = {
+        players: val.players || [],
+        locked: !!val.locked,
+        groups: val.groups || { A: [], B: [] },
+        matches: val.matches || [],
+        rankings: val.rankings || {}
+      };
+    }
+    render();
+  }, (err) => {
+    console.error('Firebase read failed', err);
+    render();
+  });
+}
+async function saveState() {
+  suppressNextSnapshot = true;
+  try { await set(stateRef, state); }
+  catch (e) { console.error('Save failed', e); suppressNextSnapshot = false; }
+}
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('regForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.locked) { alert('Draw is locked. No more registrations.'); return; }
+  const name = document.getElementById('pname').value.trim();
+  const phone = document.getElementById('pphone').value.trim();
+  if (!name || !phone) return;
+  state.players.push({ id: uid(), name, phone });
+  if (!state.rankings[name]) state.rankings[name] = { rating: 1000, played: 0, wins: 0, losses: 0 };
+  document.getElementById('pname').value = '';
+  document.getElementById('pphone').value = '';
+  await saveState();
+  render();
+});
+
+async function removePlayer(id) {
+  if (state.locked) return;
+  if (!confirm('Remove this player?')) return;
+  state.players = state.players.filter(p => p.id !== id);
+  await saveState();
+  render();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function drawGroups() {
+  if (state.players.length < 4) { alert('Need at least 4 players to draw.'); return; }
+  if (!confirm('Lock registration and draw groups now?')) return;
+  const shuffled = shuffle(state.players);
+  const sizeA = Math.ceil(shuffled.length / 2);
+  state.groups.A = shuffled.slice(0, sizeA).map(p => p.id);
+  state.groups.B = shuffled.slice(sizeA).map(p => p.id);
+  state.locked = true;
+  state.matches = generateMatches();
+  await saveState();
+  render();
+  document.querySelector('[data-tab="matches"]').click();
+}
+
+function generateMatches() {
+  const matches = [];
+  const buildRR = (ids, group) => {
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        matches.push({
+          id: uid(), group, p1: ids[i], p2: ids[j],
+          court: null, games: [], referee: '', completed: false, winner: null, isFinal: false
+        });
+      }
+    }
+  };
+  buildRR(state.groups.A, 'A');
+  buildRR(state.groups.B, 'B');
+  matches.forEach((m, i) => { m.court = (i % 2 === 0) ? 1 : 2; });
+  matches.push({
+    id: uid(), group: 'F', p1: null, p2: null, court: 1,
+    games: [], referee: '', completed: false, winner: null, isFinal: true
+  });
+  return matches;
+}
+
+async function resetTournament() {
+  if (!confirm('Reset everything? This wipes players, draws, matches, and rankings.')) return;
+  if (!confirm('Really sure? Cannot be undone.')) return;
+  state = { players: [], locked: false, groups: { A: [], B: [] }, matches: [], rankings: {} };
+  await saveState();
+  render();
+  document.querySelector('[data-tab="register"]').click();
+}
+
+function openScoreModal(matchId) {
+  activeMatchId = matchId;
+  const m = state.matches.find(x => x.id === matchId);
+  if (!m) return;
+  if (!m.p1 || !m.p2) { alert('Final players not yet decided.'); return; }
+  const p1 = playerName(m.p1);
+  const p2 = playerName(m.p2);
+  const tag = m.isFinal ? 'FINAL' : 'GROUP ' + m.group;
+  const courtName = m.court === 1 ? 'The Cooler' : 'The Furnace';
+  document.getElementById('modalMatchInfo').textContent = tag + ' · ' + courtName + ' · ' + p1 + ' vs ' + p2;
+  const gamesHtml = [1,2,3].map(g => `
+    <div class="field" style="margin-bottom: 8px;">
+      <label>Game ${g}</label>
+      <div class="games-grid">
+        <input type="number" min="0" max="30" id="g${g}p1" placeholder="${escapeHtml(p1)}">
+        <span class="dash">—</span>
+        <input type="number" min="0" max="30" id="g${g}p2" placeholder="${escapeHtml(p2)}">
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('gamesInputs').innerHTML = gamesHtml;
+  document.getElementById('refName').value = m.referee || '';
+  m.games.forEach((g, idx) => {
+    const i = idx + 1;
+    if (i <= 3) {
+      document.getElementById('g' + i + 'p1').value = g.p1;
+      document.getElementById('g' + i + 'p2').value = g.p2;
+    }
+  });
+  document.getElementById('scoreModal').classList.add('open');
+}
+
+document.getElementById('cancelScore').addEventListener('click', () => {
+  document.getElementById('scoreModal').classList.remove('open');
+  activeMatchId = null;
+});
+
+document.getElementById('submitScore').addEventListener('click', async () => {
+  const m = state.matches.find(x => x.id === activeMatchId);
+  if (!m) return;
+  const ref = document.getElementById('refName').value.trim();
+  if (!ref) { alert('Referee name required. No anonymous justice here.'); return; }
+  const games = [];
+  for (let i = 1; i <= 3; i++) {
+    const v1 = document.getElementById('g' + i + 'p1').value;
+    const v2 = document.getElementById('g' + i + 'p2').value;
+    if (v1 === '' && v2 === '') continue;
+    const n1 = parseInt(v1, 10);
+    const n2 = parseInt(v2, 10);
+    if (isNaN(n1) || isNaN(n2)) { alert('Game ' + i + ' has incomplete scores.'); return; }
+    if (n1 === n2) { alert('Game ' + i + ' cannot end tied.'); return; }
+    games.push({ p1: n1, p2: n2 });
+  }
+  if (games.length < 2) { alert('At least 2 games needed.'); return; }
+  let p1Games = 0, p2Games = 0;
+  games.forEach(g => { if (g.p1 > g.p2) p1Games++; else p2Games++; });
+  if (p1Games < 2 && p2Games < 2) { alert('No one has won 2 games yet.'); return; }
+  const wasCompleted = m.completed;
+  const previousWinner = m.winner;
+  m.games = games;
+  m.referee = ref;
+  m.completed = true;
+  m.winner = p1Games > p2Games ? m.p1 : m.p2;
+  const loser = m.winner === m.p1 ? m.p2 : m.p1;
+  if (wasCompleted && previousWinner) rollbackElo(previousWinner, previousWinner === m.p1 ? m.p2 : m.p1);
+  applyElo(m.winner, loser);
+  updateFinalists();
+  await saveState();
+  document.getElementById('scoreModal').classList.remove('open');
+  activeMatchId = null;
+  render();
+});
+
+function playerName(id) {
+  const p = state.players.find(x => x.id === id);
+  return p ? p.name : '—';
+}
+
+function applyElo(winnerId, loserId) {
+  const w = playerName(winnerId), l = playerName(loserId);
+  if (!state.rankings[w]) state.rankings[w] = { rating: 1000, played: 0, wins: 0, losses: 0 };
+  if (!state.rankings[l]) state.rankings[l] = { rating: 1000, played: 0, wins: 0, losses: 0 };
+  const Rw = state.rankings[w].rating, Rl = state.rankings[l].rating;
+  const Ew = 1 / (1 + Math.pow(10, (Rl - Rw) / 400));
+  const delta = 32 * (1 - Ew);
+  state.rankings[w].rating = Math.round(Rw + delta);
+  state.rankings[l].rating = Math.round(Rl - delta);
+  state.rankings[w].played++; state.rankings[l].played++;
+  state.rankings[w].wins++; state.rankings[l].losses++;
+}
+function rollbackElo(winnerId, loserId) {
+  const w = playerName(winnerId), l = playerName(loserId);
+  if (!state.rankings[w] || !state.rankings[l]) return;
+  const Rw = state.rankings[w].rating, Rl = state.rankings[l].rating;
+  const Ew = 1 / (1 + Math.pow(10, (Rl - Rw) / 400));
+  const delta = 32 * (1 - Ew);
+  state.rankings[w].rating = Math.round(Rw - delta);
+  state.rankings[l].rating = Math.round(Rl + delta);
+  state.rankings[w].played--; state.rankings[l].played--;
+  state.rankings[w].wins--; state.rankings[l].losses--;
+}
+
+function groupStandings(group) {
+  const ids = state.groups[group];
+  const stats = {};
+  ids.forEach(id => stats[id] = { id, played: 0, wins: 0, losses: 0, gamesFor: 0, gamesAgainst: 0, pointsFor: 0, pointsAgainst: 0 });
+  state.matches.filter(m => m.group === group && m.completed).forEach(m => {
+    let p1Games = 0, p2Games = 0;
+    m.games.forEach(g => {
+      stats[m.p1].pointsFor += g.p1; stats[m.p1].pointsAgainst += g.p2;
+      stats[m.p2].pointsFor += g.p2; stats[m.p2].pointsAgainst += g.p1;
+      if (g.p1 > g.p2) p1Games++; else p2Games++;
+    });
+    stats[m.p1].played++; stats[m.p2].played++;
+    stats[m.p1].gamesFor += p1Games; stats[m.p1].gamesAgainst += p2Games;
+    stats[m.p2].gamesFor += p2Games; stats[m.p2].gamesAgainst += p1Games;
+    if (p1Games > p2Games) { stats[m.p1].wins++; stats[m.p2].losses++; }
+    else { stats[m.p2].wins++; stats[m.p1].losses++; }
+  });
+  return Object.values(stats).sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    const aDiff = a.gamesFor - a.gamesAgainst, bDiff = b.gamesFor - b.gamesAgainst;
+    if (bDiff !== aDiff) return bDiff - aDiff;
+    return (b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst);
+  });
+}
+
+function updateFinalists() {
+  const final = state.matches.find(m => m.isFinal);
+  if (!final) return;
+  const allA = state.matches.filter(m => m.group === 'A').every(m => m.completed);
+  const allB = state.matches.filter(m => m.group === 'B').every(m => m.completed);
+  if (allA && allB && !final.completed) {
+    const sA = groupStandings('A'), sB = groupStandings('B');
+    if (sA[0] && sB[0]) { final.p1 = sA[0].id; final.p2 = sB[0].id; }
+  }
+}
+
+function render() {
+  renderPlayers(); renderDraw(); renderMatches(); renderStandings(); renderRankings();
+}
+
+function renderPlayers() {
+  document.getElementById('playerCount').textContent = '(' + state.players.length + ')';
+  const list = document.getElementById('playerList');
+  if (state.players.length === 0) {
+    list.innerHTML = '<div class="empty">No players yet. Be the first to sign up.</div>';
+    return;
+  }
+  list.innerHTML = state.players.map(p => `
+    <div class="player-row">
+      <div>
+        <div class="player-name">${escapeHtml(p.name)}</div>
+        <div class="player-phone">${escapeHtml(p.phone)}</div>
+      </div>
+      ${state.locked
+        ? `<div class="player-group">${getPlayerGroup(p.id) ? 'GROUP ' + getPlayerGroup(p.id) : ''}</div>`
+        : `<button class="btn secondary" onclick="removePlayer('${p.id}')" style="font-size:11px;padding:6px 10px;">Remove</button>`}
+    </div>
+  `).join('');
+}
+
+function getPlayerGroup(id) {
+  if (state.groups.A.includes(id)) return 'A';
+  if (state.groups.B.includes(id)) return 'B';
+  return null;
+}
+
+function renderDraw() {
+  const c = document.getElementById('drawContent');
+  if (!state.locked) {
+    c.innerHTML = `
+      <div class="notice">
+        <strong>Draw not yet made</strong>
+        Once everyone is registered, hit the button. Groups are randomly assigned; larger group goes to A. The draw locks registration.
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="drawGroups()" ${state.players.length < 4 ? 'disabled' : ''}>Draw groups now</button>
+        <button class="btn secondary" onclick="resetTournament()">Reset everything</button>
+      </div>
+      <p style="opacity:0.6;font-style:italic;">${state.players.length < 4 ? 'Need at least 4 players to draw.' : 'Ready to draw ' + state.players.length + ' players.'}</p>
+    `;
+    return;
+  }
+  c.innerHTML = `
+    <h2 class="section-title">The Draw</h2>
+    <div class="courts">
+      <div class="court cooler">
+        <div class="court-tag">Group A · ${state.groups.A.length} players</div>
+        <div class="court-name">Pool A</div>
+        <ul class="group-list">
+          ${state.groups.A.map(id => `<li>${escapeHtml(playerName(id))}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="court furnace">
+        <div class="court-tag">Group B · ${state.groups.B.length} players</div>
+        <div class="court-name">Pool B</div>
+        <ul class="group-list">
+          ${state.groups.B.map(id => `<li>${escapeHtml(playerName(id))}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+    <h2 class="section-title">The Courts</h2>
+    <div class="courts">
+      <div class="court cooler">
+        <div class="court-tag">Court 1 · AC works</div>
+        <div class="court-name">The Cooler</div>
+        <p style="margin-top:8px;font-size:13px;opacity:0.7;">The civilized court. Where games are won on tactics, not stamina.</p>
+      </div>
+      <div class="court furnace">
+        <div class="court-tag">Court 2 · AC out</div>
+        <div class="court-name">The Furnace</div>
+        <p style="margin-top:8px;font-size:13px;opacity:0.7;">Where legends are forged. Sweat is currency, shirts are wrung out.</p>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:24px;">
+      <button class="btn secondary" onclick="resetTournament()">Reset tournament</button>
+    </div>
+  `;
+}
+
+function renderMatches() {
+  const c = document.getElementById('matchesContent');
+  if (!state.locked) {
+    c.innerHTML = '<div class="empty">Draw the groups first to see matches.</div>';
+    return;
+  }
+  const groupA = state.matches.filter(m => m.group === 'A');
+  const groupB = state.matches.filter(m => m.group === 'B');
+  const final = state.matches.find(m => m.isFinal);
+  c.innerHTML = `
+    <h2 class="section-title">Group A</h2>
+    ${groupA.map(matchCard).join('')}
+    <h2 class="section-title">Group B</h2>
+    ${groupB.map(matchCard).join('')}
+    <h2 class="section-title">The Final</h2>
+    ${final ? matchCard(final) : ''}
+  `;
+}
+
+function matchCard(m) {
+  const p1 = m.p1 ? playerName(m.p1) : 'Group A winner';
+  const p2 = m.p2 ? playerName(m.p2) : 'Group B winner';
+  const courtClass = m.court === 1 ? 'cooler' : 'furnace';
+  const courtLabel = m.court === 1 ? 'Court 1 · The Cooler' : 'Court 2 · The Furnace';
+  const tag = m.isFinal ? 'Final' : 'Group ' + m.group;
+  const scoreText = m.games.length ? m.games.map(g => g.p1 + '-' + g.p2).join(' , ') : '';
+  const winnerText = m.completed && m.winner ? 'Winner: ' + playerName(m.winner) + ' · Ref: ' + m.referee : '';
+  return `
+    <div class="match ${m.completed ? 'completed' : ''}">
+      <div class="match-head">
+        <span>${tag}</span>
+        <span class="court-pill ${courtClass}">${courtLabel}</span>
+      </div>
+      <div class="match-players">
+        <span>${escapeHtml(p1)}</span>
+        <span class="vs">vs</span>
+        <span>${escapeHtml(p2)}</span>
+      </div>
+      ${scoreText ? `<div class="match-score">${scoreText}</div>` : ''}
+      ${winnerText ? `<div class="match-winner">${escapeHtml(winnerText)}</div>` : ''}
+      <div class="match-actions">
+        <button class="btn" onclick="openScoreModal('${m.id}')" ${(!m.p1 || !m.p2) ? 'disabled' : ''}>${m.completed ? 'Edit result' : 'Enter result'}</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderStandings() {
+  const c = document.getElementById('standingsContent');
+  if (!state.locked) {
+    c.innerHTML = '<div class="empty">Standings appear once the draw is made.</div>';
+    return;
+  }
+  const sA = groupStandings('A'), sB = groupStandings('B');
+  const final = state.matches.find(m => m.isFinal);
+  c.innerHTML = `
+    <h2 class="section-title">Group A</h2>
+    ${standingsTable(sA)}
+    <h2 class="section-title">Group B</h2>
+    ${standingsTable(sB)}
+    ${final && final.p1 && final.p2 ? `
+      <div class="final-card">
+        <div class="label">The Final · The Cooler</div>
+        <div class="matchup">${escapeHtml(playerName(final.p1))} <em style="opacity:0.5;">vs</em> ${escapeHtml(playerName(final.p2))}</div>
+        ${final.completed
+          ? `<div class="label">Champion: ${escapeHtml(playerName(final.winner))}</div>`
+          : `<div class="label">Awaiting battle</div>`}
+      </div>
+    ` : ''}
+  `;
+}
+
+function standingsTable(rows) {
+  if (rows.length === 0) return '<div class="empty">No data.</div>';
+  return `
+    <table>
+      <thead><tr><th>#</th><th>Player</th><th class="num">P</th><th class="num">W</th><th class="num">L</th><th class="num">Games ±</th><th class="num">Points ±</th></tr></thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr>
+            <td class="num">${i+1}</td>
+            <td>${escapeHtml(playerName(r.id))}</td>
+            <td class="num">${r.played}</td>
+            <td class="num">${r.wins}</td>
+            <td class="num">${r.losses}</td>
+            <td class="num">${(r.gamesFor - r.gamesAgainst) >= 0 ? '+' : ''}${r.gamesFor - r.gamesAgainst}</td>
+            <td class="num">${(r.pointsFor - r.pointsAgainst) >= 0 ? '+' : ''}${r.pointsFor - r.pointsAgainst}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderRankings() {
+  const c = document.getElementById('rankingsContent');
+  const arr = Object.entries(state.rankings)
+    .map(([name, r]) => ({ name, ...r }))
+    .sort((a, b) => b.rating - a.rating);
+  if (arr.length === 0) {
+    c.innerHTML = '<div class="empty">Rankings appear once matches are played.</div>';
+    return;
+  }
+  c.innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>Player</th><th class="num">Rating</th><th class="num">P</th><th class="num">W</th><th class="num">L</th></tr></thead>
+      <tbody>
+        ${arr.map((r, i) => `
+          <tr>
+            <td class="num">${i+1}</td>
+            <td>${escapeHtml(r.name)}</td>
+            <td class="num"><strong>${r.rating}</strong></td>
+            <td class="num">${r.played}</td>
+            <td class="num">${r.wins}</td>
+            <td class="num">${r.losses}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+window.removePlayer = removePlayer;
+window.drawGroups = drawGroups;
+window.openScoreModal = openScoreModal;
+window.resetTournament = resetTournament;
+
+loadState();
+</script>
+</body>
+</html>
