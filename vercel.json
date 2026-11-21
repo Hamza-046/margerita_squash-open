@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": "mkdir -p public/src/assets/images && cp index.html public/index.html && cp -r src/assets/images/. public/src/assets/images/",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/uploads/(.*)", "destination": "/api/index.js" }
+  ]
+}
