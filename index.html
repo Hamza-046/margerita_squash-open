@@ -703,48 +703,89 @@ footer {
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+<!-- DIALOG MODAL -->
+<div class="modal-backdrop" id="dialogModal">
+  <div class="modal">
+    <h3 id="dialogTitle">Notice</h3>
+    <div class="modal-sub" id="dialogMessage" style="margin-bottom:16px;font-size:14px;color:var(--ink);"></div>
+    <div class="modal-actions">
+      <button class="btn primary" id="dialogOkBtn">OK</button>
+      <button class="btn secondary" id="dialogCancelBtn" style="display:none;">Cancel</button>
+    </div>
+  </div>
+</div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBCKeRql2RBsz1W0qo4qu2nB9FNyP-OMJ4",
-  authDomain: "margarita-squash-lcc.firebaseapp.com",
-  databaseURL: "https://margarita-squash-lcc-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "margarita-squash-lcc",
-  storageBucket: "margarita-squash-lcc.firebasestorage.app",
-  messagingSenderId: "468659410492",
-  appId: "1:468659410492:web:2f0ba93087b732b833d539",
-  measurementId: "G-K9DL4ZFHRQ"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
-const stateRef = ref(db, 'tournament');
+<script type="module">
+let db = null;
+let stateRef = null;
+let fbSet = null;
+let useFirebase = false;
+
+function uiAlert(message, title = 'Notice') {
+  return new Promise((resolve) => {
+    const backdrop = document.getElementById('dialogModal');
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMessage').textContent = message;
+    const okBtn = document.getElementById('dialogOkBtn');
+    const cancelBtn = document.getElementById('dialogCancelBtn');
+    cancelBtn.style.display = 'none';
+    okBtn.textContent = 'OK';
+    const cleanup = () => {
+      okBtn.removeEventListener('click', onOk);
+      backdrop.classList.remove('open');
+      resolve();
+    };
+    const onOk = () => cleanup();
+    okBtn.addEventListener('click', onOk);
+    backdrop.classList.add('open');
+  });
+}
+
+function uiConfirm(message, title = 'Confirm') {
+  return new Promise((resolve) => {
+    const backdrop = document.getElementById('dialogModal');
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMessage').textContent = message;
+    const okBtn = document.getElementById('dialogOkBtn');
+    const cancelBtn = document.getElementById('dialogCancelBtn');
+    cancelBtn.style.display = '';
+    okBtn.textContent = 'Confirm';
+    const cleanup = (result) => {
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      backdrop.classList.remove('open');
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    backdrop.classList.add('open');
+  });
+}
 
 let state = { players: [], locked: false, groups: { A: [], B: [] }, matches: [], rankings: {} };
 let activeMatchId = null;
 let suppressNextSnapshot = false;
 let lateGroup = 'A';
 
-function loadState() {
-  // Connection status monitor
-  const connRef = ref(db, '.info/connected');
-  onValue(connRef, (snap) => {
-    const el = document.getElementById('connStatus');
-    const txt = document.getElementById('connText');
-    if (snap.val() === true) {
-      el.classList.remove('offline');
-      txt.textContent = 'Live';
-    } else {
-      el.classList.add('offline');
-      txt.textContent = 'Reconnecting';
-    }
-  });
+function setConnStatus(online, label) {
+  const el = document.getElementById('connStatus');
+  const txt = document.getElementById('connText');
+  if (online) {
+    el.classList.remove('offline');
+    txt.textContent = label || 'Live';
+  } else {
+    el.classList.add('offline');
+    txt.textContent = label || 'Reconnecting';
+  }
+}
 
-  onValue(stateRef, (snapshot) => {
-    if (suppressNextSnapshot) { suppressNextSnapshot = false; return; }
-    const val = snapshot.val();
-    if (val) {
+async function fetchFallbackState() {
+  try {
+    const res = await fetch('/api/tournament');
+    if (res.ok) {
+      const val = await res.json();
       state = {
         players: val.players || [],
         locked: !!val.locked,
@@ -752,14 +793,80 @@ function loadState() {
         matches: val.matches || [],
         rankings: val.rankings || {}
       };
+      setConnStatus(true, 'Live');
+    } else {
+      setConnStatus(false, 'Offline');
     }
-    render();
-  }, (err) => { console.error('Firebase read failed', err); render(); });
+  } catch (err) {
+    console.error('State read failed', err);
+    setConnStatus(false, 'Offline');
+  }
+  render();
 }
+
+async function loadState() {
+  try {
+    const cfgRes = await fetch('/api/config');
+    const cfgData = cfgRes.ok ? await cfgRes.json() : { firebaseConfig: null };
+    if (cfgData && cfgData.firebaseConfig && cfgData.firebaseConfig.apiKey) {
+      const [{ initializeApp }, { getDatabase, ref, set, onValue }] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js")
+      ]);
+      const fbApp = initializeApp(cfgData.firebaseConfig);
+      db = getDatabase(fbApp);
+      stateRef = ref(db, 'tournament');
+      fbSet = set;
+      useFirebase = true;
+
+      const connRef = ref(db, '.info/connected');
+      onValue(connRef, (snap) => {
+        setConnStatus(snap.val() === true, snap.val() === true ? 'Live' : 'Reconnecting');
+      });
+
+      onValue(stateRef, (snapshot) => {
+        if (suppressNextSnapshot) { suppressNextSnapshot = false; return; }
+        const val = snapshot.val();
+        if (val) {
+          state = {
+            players: val.players || [],
+            locked: !!val.locked,
+            groups: val.groups || { A: [], B: [] },
+            matches: val.matches || [],
+            rankings: val.rankings || {}
+          };
+        }
+        render();
+      }, (err) => { console.error('Firebase read failed', err); render(); });
+      return;
+    }
+  } catch (err) {
+    console.warn('Falling back to local server state', err);
+  }
+
+  await fetchFallbackState();
+  setInterval(() => {
+    if (!suppressNextSnapshot) fetchFallbackState();
+  }, 5000);
+}
+
 async function saveState() {
   suppressNextSnapshot = true;
-  try { await set(stateRef, state); }
-  catch (e) { console.error('Save failed', e); suppressNextSnapshot = false; }
+  try {
+    if (useFirebase && fbSet && stateRef) {
+      await fbSet(stateRef, state);
+    } else {
+      await fetch('/api/tournament', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      });
+      suppressNextSnapshot = false;
+    }
+  } catch (e) {
+    console.error('Save failed', e);
+    suppressNextSnapshot = false;
+  }
 }
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
@@ -826,14 +933,14 @@ window.pickGroup = pickGroup;
 // REGISTRATION
 document.getElementById('regForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (state.locked) { alert('Registration is locked. Ask admin to add you as a late entry.'); return; }
+  if (state.locked) { await uiAlert('Registration is locked. Ask admin to add you as a late entry.'); return; }
   const name = document.getElementById('pname').value.trim();
   const phone = document.getElementById('pphone').value.trim();
   const pkr = document.getElementById('ppkr').value.trim();
   if (!name || !phone) return;
   const dup = state.players.some(p => p.name.trim().toLowerCase() === name.toLowerCase());
   if (dup) {
-    if (!confirm('"' + name + '" is already registered. Add anyway? (Maybe a different person with the same name, or a duplicate entry.)')) return;
+    if (!(await uiConfirm('"' + name + '" is already registered. Add anyway? (Maybe a different person with the same name, or a duplicate entry.)'))) return;
   }
   state.players.push({ id: uid(), name, phone, pkr: pkr ? parseInt(pkr,10) : 0 });
   if (!state.rankings[name]) state.rankings[name] = { rating: 1000, played: 0, wins: 0, losses: 0 };
@@ -846,7 +953,7 @@ document.getElementById('regForm').addEventListener('submit', async (e) => {
 
 async function removePlayer(id) {
   if (state.locked) return;
-  if (!confirm('Remove this player?')) return;
+  if (!(await uiConfirm('Remove this player?'))) return;
   state.players = state.players.filter(p => p.id !== id);
   await saveState();
   render();
@@ -863,8 +970,8 @@ function shuffle(arr) {
 }
 
 async function drawGroups() {
-  if (state.players.length < 4) { alert('Need at least 4 players.'); return; }
-  if (!confirm('Lock registration and draw groups?')) return;
+  if (state.players.length < 4) { await uiAlert('Need at least 4 players.'); return; }
+  if (!(await uiConfirm('Lock registration and draw groups?'))) return;
   const shuffled = shuffle(state.players);
   const sA = Math.ceil(shuffled.length / 2);
   state.groups.A = shuffled.slice(0, sA).map(p => p.id);
@@ -897,11 +1004,11 @@ function generateMatches() {
 
 // LATE PLAYER
 async function addLatePlayer() {
-  if (!state.locked) { alert('Draw groups first.'); return; }
+  if (!state.locked) { await uiAlert('Draw groups first.'); return; }
   const name = document.getElementById('lateName').value.trim();
   const phone = document.getElementById('latePhone').value.trim();
   const pkr = document.getElementById('latePkr').value.trim();
-  if (!name || !phone) { alert('Name and phone required.'); return; }
+  if (!name || !phone) { await uiAlert('Name and phone required.'); return; }
   const newPlayer = { id: uid(), name, phone, pkr: pkr ? parseInt(pkr,10) : 0 };
   state.players.push(newPlayer);
   if (!state.rankings[name]) state.rankings[name] = { rating: 1000, played: 0, wins: 0, losses: 0 };
@@ -944,10 +1051,10 @@ window.toggleLiveNow = toggleLiveNow;
 // WITHDRAW (no matches played)
 async function withdrawPlayer(id) {
   const name = playerName(id);
-  if (!confirm('Withdraw ' + name + '? This removes them and deletes their unplayed matches.')) return;
+  if (!(await uiConfirm('Withdraw ' + name + '? This removes them and deletes their unplayed matches.'))) return;
   // Check if they have any completed matches
   const hasPlayed = state.matches.some(m => m.completed && (m.p1 === id || m.p2 === id));
-  if (hasPlayed) { alert(name + ' has completed matches. Use Forfeit instead.'); return; }
+  if (hasPlayed) { await uiAlert(name + ' has completed matches. Use Forfeit instead.'); return; }
   // Remove unplayed matches involving this player
   state.matches = state.matches.filter(m => {
     if (m.isFinal) return true;
@@ -969,7 +1076,7 @@ window.withdrawPlayer = withdrawPlayer;
 // FORFEIT (has played some matches, auto-complete remaining as walkover)
 async function forfeitPlayer(id) {
   const name = playerName(id);
-  if (!confirm('Forfeit all remaining matches for ' + name + '? Opponents get 11-0, 11-0 walkovers.')) return;
+  if (!(await uiConfirm('Forfeit all remaining matches for ' + name + '? Opponents get 11-0, 11-0 walkovers.'))) return;
   state.matches.forEach(m => {
     if (m.isFinal || m.completed) return;
     if (m.p1 !== id && m.p2 !== id) return;
@@ -1014,8 +1121,8 @@ function renderManagePlayers() {
 }
 
 async function resetTournament() {
-  if (!confirm('Reset everything? Players, draws, matches, rankings?')) return;
-  if (!confirm('Absolutely sure? Cannot undo.')) return;
+  if (!(await uiConfirm('Reset everything? Players, draws, matches, rankings?'))) return;
+  if (!(await uiConfirm('Absolutely sure? Cannot undo.'))) return;
   state = { players: [], locked: false, groups: { A: [], B: [] }, matches: [], rankings: {} };
   await saveState();
   render();
@@ -1023,10 +1130,10 @@ async function resetTournament() {
 window.resetTournament = resetTournament;
 
 // SCORE MODAL
-function openScoreModal(matchId) {
+async function openScoreModal(matchId) {
   activeMatchId = matchId;
   const m = state.matches.find(x => x.id === matchId);
-  if (!m || !m.p1 || !m.p2) { alert('Players not yet decided.'); return; }
+  if (!m || !m.p1 || !m.p2) { await uiAlert('Players not yet decided.'); return; }
   const p1 = playerName(m.p1), p2 = playerName(m.p2);
   const tag = m.isFinal ? 'Final' : 'Group ' + m.group;
   const courtName = m.court === 1 ? 'The Cooler (Court 1)' : 'The Furnace (Court 2)';
@@ -1058,21 +1165,21 @@ document.getElementById('submitScore').addEventListener('click', async () => {
   const m = state.matches.find(x => x.id === activeMatchId);
   if (!m) return;
   const rname = document.getElementById('refName').value.trim();
-  if (!rname) { alert('Referee name required. No anonymous justice here.'); return; }
+  if (!rname) { await uiAlert('Referee name required. No anonymous justice here.'); return; }
   const games = [];
   for (let i = 1; i <= 3; i++) {
     const v1 = document.getElementById('g'+i+'p1').value;
     const v2 = document.getElementById('g'+i+'p2').value;
     if (v1 === '' && v2 === '') continue;
     const n1 = parseInt(v1,10), n2 = parseInt(v2,10);
-    if (isNaN(n1) || isNaN(n2)) { alert('Game '+i+' incomplete.'); return; }
-    if (n1 === n2) { alert('Game '+i+' cannot tie.'); return; }
+    if (isNaN(n1) || isNaN(n2)) { await uiAlert('Game '+i+' incomplete.'); return; }
+    if (n1 === n2) { await uiAlert('Game '+i+' cannot tie.'); return; }
     games.push({ p1: n1, p2: n2 });
   }
-  if (games.length < 2) { alert('At least 2 games needed.'); return; }
+  if (games.length < 2) { await uiAlert('At least 2 games needed.'); return; }
   let w1 = 0, w2 = 0;
   games.forEach(g => { if (g.p1 > g.p2) w1++; else w2++; });
-  if (w1 < 2 && w2 < 2) { alert('No one has won 2 games yet.'); return; }
+  if (w1 < 2 && w2 < 2) { await uiAlert('No one has won 2 games yet.'); return; }
   const wasCompleted = m.completed, prevWinner = m.winner;
   m.games = games; m.referee = rname; m.completed = true;
   m.liveNow = false;
